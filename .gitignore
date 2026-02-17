@@ -10,3 +10,6 @@ wheels/
 .venv
 
 *.zip
+
+# data files
+hw1/data/
