@@ -1,9 +1,11 @@
 """
 READ-ONLY: Behavior cloning agent definition
 """
+
 from cs224r.infrastructure.replay_buffer import ReplayBuffer
 from cs224r.policies.MLP_policy import MLPPolicySL
 from .base_agent import BaseAgent
+
 
 class BCAgent(BaseAgent):
     """
@@ -23,6 +25,7 @@ class BCAgent(BaseAgent):
     sample
         Samples a batch of trajectories from the replay buffer
     """
+
     def __init__(self, env, agent_params):
         super(BCAgent, self).__init__()
 
@@ -32,16 +35,15 @@ class BCAgent(BaseAgent):
 
         # Create policy class as our actor
         self.actor = MLPPolicySL(
-            self.agent_params['ac_dim'],
-            self.agent_params['ob_dim'],
-            self.agent_params['n_layers'],
-            self.agent_params['size'],
-            learning_rate=self.agent_params['learning_rate'],
+            self.agent_params["ac_dim"],
+            self.agent_params["ob_dim"],
+            self.agent_params["n_layers"],
+            self.agent_params["size"],
+            learning_rate=self.agent_params["learning_rate"],
         )
 
         # Initialize replay buffer
-        self.replay_buffer = ReplayBuffer(
-            self.agent_params['max_replay_buffer_size'])
+        self.replay_buffer = ReplayBuffer(self.agent_params["max_replay_buffer_size"])
 
     def train(self, ob_no, ac_na):
         """

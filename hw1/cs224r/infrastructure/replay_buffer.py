@@ -4,10 +4,11 @@ TO EDIT: A simple, generic replay buffer
 Functions to edit:
     sample_random_data: line 103
 """
+
 from cs224r.infrastructure.utils import *
 
 
-class ReplayBuffer():
+class ReplayBuffer:
     """
     Defines a replay buffer to store past trajectories
 
@@ -35,6 +36,7 @@ class ReplayBuffer():
     sample_recent_data:
         Selects the most recent batch of data
     """
+
     def __init__(self, max_size=1000000):
 
         self.max_size = max_size
@@ -68,34 +70,40 @@ class ReplayBuffer():
 
         # Convert new rollouts into their component arrays, and append them onto
         # our arrays
-        observations, actions, next_observations, terminals, concatenated_rewards, unconcatenated_rewards = (
-            convert_listofrollouts(paths))
+        (
+            observations,
+            actions,
+            next_observations,
+            terminals,
+            concatenated_rewards,
+            unconcatenated_rewards,
+        ) = convert_listofrollouts(paths)
 
         if self.obs is None:
-            self.obs = observations[-self.max_size:]
-            self.acs = actions[-self.max_size:]
-            self.rews = concatenated_rewards[-self.max_size:]
-            self.next_obs = next_observations[-self.max_size:]
-            self.terminals = terminals[-self.max_size:]
+            self.obs = observations[-self.max_size :]
+            self.acs = actions[-self.max_size :]
+            self.rews = concatenated_rewards[-self.max_size :]
+            self.next_obs = next_observations[-self.max_size :]
+            self.terminals = terminals[-self.max_size :]
         else:
-            self.obs = np.concatenate([self.obs, observations])[-self.max_size:]
-            self.acs = np.concatenate([self.acs, actions])[-self.max_size:]
+            self.obs = np.concatenate([self.obs, observations])[-self.max_size :]
+            self.acs = np.concatenate([self.acs, actions])[-self.max_size :]
             if concat_rew:
-                self.rews = np.concatenate(
-                    [self.rews, concatenated_rewards]
-                )[-self.max_size:]
+                self.rews = np.concatenate([self.rews, concatenated_rewards])[
+                    -self.max_size :
+                ]
             else:
                 if isinstance(unconcatenated_rewards, list):
                     self.rews += unconcatenated_rewards
                 else:
                     self.rews.append(unconcatenated_rewards)
-                self.rews = self.rews[-self.max_size:]
-            self.next_obs = np.concatenate(
-                [self.next_obs, next_observations]
-            )[-self.max_size:]
-            self.terminals = np.concatenate(
-                [self.terminals, terminals]
-            )[-self.max_size:]
+                self.rews = self.rews[-self.max_size :]
+            self.next_obs = np.concatenate([self.next_obs, next_observations])[
+                -self.max_size :
+            ]
+            self.terminals = np.concatenate([self.terminals, terminals])[
+                -self.max_size :
+            ]
 
     ########################################
     ########################################
@@ -113,14 +121,14 @@ class ReplayBuffer():
             terminals: a batch of terminals
         """
         assert (
-                self.obs.shape[0]
-                == self.acs.shape[0]
-                == self.rews.shape[0]
-                == self.next_obs.shape[0]
-                == self.terminals.shape[0]
+            self.obs.shape[0]
+            == self.acs.shape[0]
+            == self.rews.shape[0]
+            == self.next_obs.shape[0]
+            == self.terminals.shape[0]
         )
 
-        ## TODO return batch_size number of random entries\
+        ## TODO[DONE] return batch_size number of random entries\
         ## from each of the 5 component arrays above
         ## HINT 1: use np.random.permutation to sample random indices
         ## HINT 2: return corresponding data points from each array
@@ -128,8 +136,15 @@ class ReplayBuffer():
         ## HINT 3: look at the sample_recent_data function below
         ## Note that rews, next_obs, and terminals are not used for BC
 
-        raise NotImplementedError
-    
+        random_indices = np.random.permutation(self.obs.shape[0])[:batch_size]
+        return (
+            self.obs[random_indices],
+            self.acs[random_indices],
+            self.rews[random_indices],
+            self.next_obs[random_indices],
+            self.terminals[random_indices],
+        )
+
     def sample_recent_data(self, batch_size=1):
         """
         Samples a batch of the most recent transitions transitions

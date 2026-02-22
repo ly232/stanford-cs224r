@@ -44,16 +44,18 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     update:
         Trains the policy with a supervised learning objective
     """
-    def __init__(self,
-                 ac_dim,
-                 ob_dim,
-                 n_layers,
-                 size,
-                 learning_rate=1e-4,
-                 training=True,
-                 nn_baseline=False,
-                 **kwargs
-                 ):
+
+    def __init__(
+        self,
+        ac_dim,
+        ob_dim,
+        n_layers,
+        size,
+        learning_rate=1e-4,
+        training=True,
+        nn_baseline=False,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         # Initialize variables for environment (action/observation dimension, number of layers, etc.)
@@ -70,17 +72,17 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         self.mean_net = ptu.build_mlp(
             input_size=self.ob_dim,
             output_size=self.ac_dim,
-            n_layers=self.n_layers, size=self.size,
+            n_layers=self.n_layers,
+            size=self.size,
         )
         self.mean_net.to(ptu.device)
         self.logstd = nn.Parameter(
-
             torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
         )
         self.logstd.to(ptu.device)
         self.optimizer = optim.Adam(
             itertools.chain([self.logstd], self.mean_net.parameters()),
-            self.learning_rate
+            self.learning_rate,
         )
 
     ##################################
@@ -105,7 +107,11 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             observation = obs[None]
 
         # TODO return the action that the policy prescribes
-        raise NotImplementedError
+        action_distribution = self.forward(
+            ptu.from_numpy(observation.astype(np.float32))
+        )
+        action = action_distribution.sample()
+        return ptu.to_numpy(action)
 
     def forward(self, observation: torch.FloatTensor) -> Any:
         """
@@ -115,13 +121,13 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         :return:
             action: sampled action(s) from the policy
         """
-        # TODO: implement the forward pass of the network.
+        # TODO[DONE]: implement the forward pass of the network.
         # You can return anything you want, but you should be able to differentiate
         # through it. For example, you can return a torch.FloatTensor. You can also
         # return more flexible objects, such as a
         # `torch.distributions.Distribution` object. It's up to you!
-        
-        raise NotImplementedError
+        mean = self.mean_net(observation)
+        return torch.distributions.Normal(mean, torch.exp(self.logstd))
 
     def update(self, observations, actions):
         """
@@ -132,11 +138,16 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         :return:
             dict: 'Training Loss': supervised learning loss
         """
-        # TODO: update the policy and return the loss. Recall that to update the policy
+        # TODO[DONE]: update the policy and return the loss. Recall that to update the policy
         # you need to backpropagate the gradient and step the optimizer.
-        loss = TODO
+        self.optimizer.zero_grad()
+        if isinstance(observations, np.ndarray):
+            observations = ptu.from_numpy(observations.astype(np.float32))
+        predicted_actions = self.forward(observations)
+        loss = -predicted_actions.log_prob(ptu.from_numpy(actions)).sum(dim=-1).mean()
+        loss.backward()
+        self.optimizer.step()
 
         return {
-            'Training Loss': ptu.to_numpy(loss),
+            "Training Loss": ptu.to_numpy(loss),
         }
-

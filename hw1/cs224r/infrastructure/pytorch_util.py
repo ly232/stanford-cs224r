@@ -1,10 +1,9 @@
-'''
+"""
 TO EDIT: Utilities for handling PyTorch
 
 Functions to edit:
-    1. build_mlp (line 26) 
-'''
-
+    1. build_mlp (line 26)
+"""
 
 from typing import Union
 
@@ -15,49 +14,68 @@ Activation = Union[str, nn.Module]
 
 
 _str_to_activation = {
-    'relu': nn.ReLU(),
-    'tanh': nn.Tanh(),
-    'leaky_relu': nn.LeakyReLU(),
-    'sigmoid': nn.Sigmoid(),
-    'selu': nn.SELU(),
-    'softplus': nn.Softplus(),
-    'identity': nn.Identity(),
+    "relu": nn.ReLU(),
+    "tanh": nn.Tanh(),
+    "leaky_relu": nn.LeakyReLU(),
+    "sigmoid": nn.Sigmoid(),
+    "selu": nn.SELU(),
+    "softplus": nn.Softplus(),
+    "identity": nn.Identity(),
 }
 
 device = None
 
+
 def build_mlp(
-        input_size: int,
-        output_size: int,
-        n_layers: int,
-        size: int,
-        activation: Activation = 'tanh',
-        output_activation: Activation = 'identity',
+    input_size: int,
+    output_size: int,
+    n_layers: int,
+    size: int,
+    activation: Activation = "tanh",
+    output_activation: Activation = "identity",
 ) -> nn.Module:
     """
-        Builds a feedforward neural network
+    Builds a feedforward neural network
 
-        Arguments:
-            n_layers: number of hidden layers
-            size: dimension of each hidden layer
-            activation: activation of each hidden layer
+    Example mental model:
+    - imagine a robot with 10 joints.
+    - state space is position, velocity and acceleration at each joint.
+    - input_size = 30 (10 positions, 10 velocities, 10 accelerations)
+    - output_size = 10 (mean action for each joint)
 
-            input_size: size of the input layer
-            output_size: size of the output layer
-            output_activation: activation of the output layer
+    Arguments:
+        n_layers: number of hidden layers
+        size: dimension of each hidden layer
+        activation: activation of each hidden layer
 
-        Returns:
-            MLP (nn.Module)
+        input_size: size of the input layer, i.e. dimensionality of the state
+          space.
+        output_size: size of the output layer, indicating the number of action
+          dimensions (e.g. each joint has its own mean, so 10 joints would have
+          output_size = 10)
+        output_activation: activation of the output layer
+
+    Returns:
+        MLP (nn.Module)
     """
     if isinstance(activation, str):
         activation = _str_to_activation[activation]
     if isinstance(output_activation, str):
         output_activation = _str_to_activation[output_activation]
 
-    # TODO: return a MLP. This should be an instance of nn.Module
+    # TODO[DONE]: return a MLP. This should be an instance of nn.Module
     # Note: nn.Sequential is an instance of nn.Module.
-    
-    raise NotImplementedError
+    layers = []
+    layers.append(nn.Linear(input_size, size))
+    layers.append(activation)
+    for _ in range(n_layers - 1):
+        layers.append(nn.Linear(size, size))
+        layers.append(activation)
+    layers.append(nn.Linear(size, output_size))
+    layers.append(output_activation)
+
+    return nn.Sequential(*layers)
+
 
 def init_gpu(use_gpu=True, gpu_id=0):
     global device
@@ -81,4 +99,4 @@ def from_numpy(*args, **kwargs):
 
 
 def to_numpy(tensor):
-    return tensor.to('cpu').detach().numpy()
+    return tensor.to("cpu").detach().numpy()
