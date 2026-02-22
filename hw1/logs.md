@@ -53,3 +53,29 @@ Training Loss : -15.763310432434082
 Initial_DataCollection_AverageReturn : 4713.6533203125
 Done logging...
 ```
+
+# 2026-02-22
+
+Add more `--eval_batch_size` than `--ep_len` to collect more means and stdevs per iteration. Note for behavior cloning, we only see expert data in one single batch, so in the end there's still just a single mean and single stdev on tensorboard. DAGGER would allow for more iterations (setting `--n_iter` larger than 1 would hit a validation failure if it's running in BC mode).
+
+```
+(.venv) ly232@ly232s-iMac-Pro hw1 % python cs224r/scripts/run_hw1.py \
+        --expert_policy_file cs224r/policies/experts/Ant.pkl \
+        --env_name Ant-v4 --exp_name bc_ant --n_iter 1 \
+        --expert_data cs224r/expert_data/expert_data_Ant-v4.pkl \
+        --ep_len 1000 \
+        --eval_batch_size 5000 \
+        --video_log_freq 1
+```
+
+Open tensorboard:
+
+```
+python -m tensorboard.main --logdir data/
+```
+
+Eval (student):
+![Eval rollout](screenshots/eval_rollout_20260222.gif)
+
+Train (expert):
+![Trained rollout](screenshots/train_rollout_20260222.gif)
