@@ -366,6 +366,6 @@ class BCTrainer:
             for key, value in logs.items():
                 print("{} : {}".format(key, value))
                 self.logger.log_scalar(value, key, itr)
-            print("Done logging...\n\n")
+            print(f"Done logging for itr {itr}...\n\n")
 
             self.logger.flush()
