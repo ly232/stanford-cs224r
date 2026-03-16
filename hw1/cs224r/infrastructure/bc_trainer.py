@@ -202,7 +202,7 @@ class BCTrainer:
             train_video_paths: paths which also contain videos for visualization purposes
         """
 
-        # TODO decide whether to load training data or use the current policy to collect more data
+        # TODO[DONE] decide whether to load training data or use the current policy to collect more data
         # HINT1: On the first iteration, do you need to collect training trajectories? You might
         # want to handle loading from expert data, and if the data doesn't exist, collect an appropriate
         # number of transitions.
@@ -250,7 +250,7 @@ class BCTrainer:
                 self.agent.sample(self.params["train_batch_size"])
             )
 
-            # TODO use the sampled data to train an agent
+            # TODO[DONE] use the sampled data to train an agent
             # HINT: use the agent's train function
             # HINT: keep the agent's training log for debugging
             train_log = self.agent.train(ob_batch, ac_batch)
@@ -269,11 +269,14 @@ class BCTrainer:
             "\nRelabelling collected observations with labels from an expert policy..."
         )
 
-        # TODO relabel collected obsevations (from our policy) with labels from an expert policy
+        # TODO[DONE] relabel collected obsevations (from our policy) with labels from an expert policy
         # HINT: query the policy (using the get_action function) with paths[i]["observation"]
         # and replace paths[i]["action"] with these expert labels
+        for i in range(len(paths)):
+            expert_action = expert_policy.get_action(paths[i]["observation"])
+            paths[i]["action"] = expert_action
 
-        raise NotImplementedError
+        return paths
 
     ####################################
     ####################################
